@@ -56,7 +56,7 @@ class _ContentView extends StatelessWidget {
                       controller.stop();
                     },
                   ),
-                  SizedBox(width: 80),
+                  SizedBox(width: 100),
                   _buildTextButton(
                     "D",
                     onTapDown: () {

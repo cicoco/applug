@@ -9,7 +9,7 @@ import 'package:get/get.dart';
 import 'my_client.dart';
 
 class MainController extends GetxController {
-  final URL = "ws://";
+  final URL = "ws://jingwei-test.wesine.com.cn:8075/api/ws?AppUserToken=Plain%20372@guxiang";
   final productKey = '49KaPBUogOO7';
   final deviceCode = 'WSCPCG100000001';
 

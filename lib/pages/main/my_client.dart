@@ -6,7 +6,7 @@ import 'dart:async';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
 class MyClient {
-  late WebSocketChannel _channel;
+  WebSocketChannel? _channel;
   Timer? _reconnectTimer;
   late String _url;
   StreamController<String> _messageController = StreamController<String>.broadcast();
@@ -20,23 +20,30 @@ class MyClient {
     _url = url;
     try {
       _channel = WebSocketChannel.connect(Uri.parse(url));
-      _channel.stream.listen(
+      _channel!.stream.listen(
         (data) {
           _messageController.sink.add(data);
         },
         onDone: () {
-          _channel.sink.close();
+          if(_channel != null){
+            _channel!.sink.close();
+            _channel = null;
+          }
           _connectController.sink.addError('连接已关闭');
-          // _reconnect();
+          _reconnect();
         },
         onError: (error) {
-          _channel.sink.close();
+          if(_channel != null){
+            _channel!.sink.close();
+            _channel = null;
+          }
           _connectController.sink.addError(error);
           _reconnect();
         },
       );
       _connectController.sink.add(null); // 发送连接成功事件
     } catch (e) {
+      _channel = null;
       _reconnect();
       _connectController.sink.addError(e);
     }
@@ -44,12 +51,15 @@ class MyClient {
 
   void send(String message) {
     if (_channel != null) {
-      _channel.sink.add(message);
+      _channel!.sink.add(message);
     }
   }
 
   void disconnect() {
-    _channel.sink.close();
+    if(_channel != null){
+      _channel!.sink.close();
+      _channel = null;
+    }
     _messageController.close();
     _connectController.close();
     _reconnectTimer?.cancel();

@@ -39,9 +39,11 @@ class MainController extends GetxController {
     });
 
     websocket.onConnect.listen((_) {
+      UnicLog.i("连接成功");
       state = "已连接";
       update([AppIds.main_content_view]);
     }, onError: (error) {
+      UnicLog.i("连接异常：" + error);
       state = "连接异常";
       update([AppIds.main_content_view]);
     });

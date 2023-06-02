@@ -2,18 +2,27 @@
 // @email: tafiagu@gmail.com
 // @date: 2023-06-02 14:02:20
 
+import 'dart:async';
 import 'dart:convert';
 
+import 'package:applug/utils/unic_log.dart';
 import 'package:get/get.dart';
 
+import '../../common/values/ids.dart';
 import 'my_client.dart';
 
 class MainController extends GetxController {
   final URL = "ws://jingwei-test.wesine.com.cn:8075/api/ws?AppUserToken=Plain%20372@guxiang";
+
+  // final URL = "ws://192.168.2.100:8073/ws?AppUserToken=Plain%20372@guxiang";
   final productKey = '49KaPBUogOO7';
   final deviceCode = 'WSCPCG100000001';
 
   final websocket = MyClient();
+
+  Timer? _heartbeatTimer;
+
+  String state = "初始化中";
 
   // onStart 组件在内存分配的时间点就会被调用，这是一个final方法，并使用了内部的callable类型，以避免被子类覆盖。
   // 这里面会调用onInit方方法
@@ -24,11 +33,19 @@ class MainController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    websocket.connect(URL);
     websocket.onMessage.listen((message) {
       // 处理 WebSocket 消息
-      print('Received message: $message');
+      UnicLog.i('Received message: $message');
     });
+
+    websocket.onConnect.listen((_) {
+      state = "已连接";
+      update([AppIds.main_content_view]);
+    }, onError: (error) {
+      state = "连接异常";
+      update([AppIds.main_content_view]);
+    });
+    websocket.connect(URL);
   }
 
   // 在 onInit 一帧后被调用，适合做一些导航进入的事件，
@@ -37,13 +54,9 @@ class MainController extends GetxController {
   void onReady() {
     super.onReady();
 
-    // channel.stream.listen((event) {
-    //   print('WebSocket event: $event');
-    // }, onError: (error) {
-    //   print('WebSocket error: $error');
-    // }, onDone: () {
-    //   print('WebSocket done.');
-    // });
+    _heartbeatTimer = Timer.periodic(Duration(seconds: 10), (timer) {
+      websocket.send(" ");
+    });
   }
 
   void stop() {
@@ -125,6 +138,7 @@ class MainController extends GetxController {
   // 例如关闭事件监听，关闭流对象，或者销毁可能造成内存泄露的对象
   @override
   void onClose() {
+    _heartbeatTimer?.cancel();
     websocket.disconnect();
     super.onClose();
   }

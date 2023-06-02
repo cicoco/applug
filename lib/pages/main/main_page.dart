@@ -6,6 +6,7 @@ import 'package:applug/common/values/ids.dart';
 import 'package:applug/pages/main/main_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/src/widgets/framework.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 
 class MainPage extends StatelessWidget {
@@ -27,63 +28,70 @@ class _ContentView extends StatelessWidget {
     return GetBuilder<MainController>(
         id: AppIds.main_content_view,
         builder: (controller) {
-          return Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  _buildTextButton(
-                    "W",
-                    onTapDown: () {
-                      controller.goForward();
-                    },
-                    onTapUp: () {
-                      controller.stop();
-                    },
-                  ),
-                ],
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  _buildTextButton(
-                    "A",
-                    onTapDown: () {
-                      controller.toLeft();
-                    },
-                    onTapUp: () {
-                      controller.stop();
-                    },
-                  ),
-                  SizedBox(width: 100),
-                  _buildTextButton(
-                    "D",
-                    onTapDown: () {
-                      controller.toRight();
-                    },
-                    onTapUp: () {
-                      controller.stop();
-                    },
-                  ),
-                ],
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  _buildTextButton(
-                    "S",
-                    onTapDown: () {
-                      controller.goBack();
-                    },
-                    onTapUp: () {
-                      controller.stop();
-                    },
-                  ),
-                ],
-              ),
-            ],
-          );
+          return Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+            Text(
+              controller.state,
+              style: TextStyle(fontSize: 24),
+            ),
+            SizedBox(height: 20),
+            Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    _buildTextButton(
+                      "W",
+                      onTapDown: () {
+                        controller.goForward();
+                      },
+                      onTapUp: () {
+                        controller.stop();
+                      },
+                    ),
+                  ],
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    _buildTextButton(
+                      "A",
+                      onTapDown: () {
+                        controller.toLeft();
+                      },
+                      onTapUp: () {
+                        controller.stop();
+                      },
+                    ),
+                    SizedBox(width: 100),
+                    _buildTextButton(
+                      "D",
+                      onTapDown: () {
+                        controller.toRight();
+                      },
+                      onTapUp: () {
+                        controller.stop();
+                      },
+                    ),
+                  ],
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    _buildTextButton(
+                      "S",
+                      onTapDown: () {
+                        controller.goBack();
+                      },
+                      onTapUp: () {
+                        controller.stop();
+                      },
+                    ),
+                  ],
+                ),
+              ],
+            )
+          ]);
         });
   }
 }

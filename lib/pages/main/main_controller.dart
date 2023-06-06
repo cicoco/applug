@@ -63,7 +63,7 @@ class MainController extends GetxController {
 
   void stop() {
     final Map<String, dynamic> forward = {
-      'type': 0,
+      'type': 10000001,
       'content': {
         'productKey': productKey,
         'deviceCode': deviceCode,
@@ -78,7 +78,7 @@ class MainController extends GetxController {
 
   void goForward() {
     final Map<String, dynamic> forward = {
-      'type': 0,
+      'type': 10000001,
       'content': {
         'productKey': productKey,
         'deviceCode': deviceCode,
@@ -93,7 +93,7 @@ class MainController extends GetxController {
 
   void goBack() {
     final Map<String, dynamic> forward = {
-      'type': 0,
+      'type': 10000001,
       'content': {
         'productKey': productKey,
         'deviceCode': deviceCode,
@@ -108,7 +108,7 @@ class MainController extends GetxController {
 
   void toLeft() {
     final Map<String, dynamic> forward = {
-      'type': 0,
+      'type': 10000001,
       'content': {
         'productKey': productKey,
         'deviceCode': deviceCode,
@@ -123,7 +123,7 @@ class MainController extends GetxController {
 
   void toRight() {
     final Map<String, dynamic> forward = {
-      'type': 0,
+      'type': 10000001,
       'content': {
         'productKey': productKey,
         'deviceCode': deviceCode,

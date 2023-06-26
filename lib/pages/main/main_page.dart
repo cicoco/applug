@@ -2,120 +2,58 @@
 // @email: tafiagu@gmail.com
 // @date: 2023-06-02 14:01:30
 
+import 'dart:math' as math;
+import 'dart:math';
+
 import 'package:applug/common/values/ids.dart';
-import 'package:applug/pages/main/main_controller.dart';
+import 'package:applug/pages/main/joy_stick.dart';
+import 'package:applug/utils/unic_log.dart';
+import 'package:fijkplayer_new/fijkplayer_new.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/src/widgets/framework.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 
+import 'main_controller.dart';
+
 class MainPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(
-          title: Text('mainTitle'.tr),
-        ),
-        body: Container(
-          child: _ContentView(),
-        ));
-  }
-}
+        appBar: null,
+        body: GetBuilder<MainController>(
+            id: AppIds.main_content_view,
+            builder: (controller) {
+              return Column(
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  // 摄像头
+                  FijkView(
+                    width: 1.sw,
+                    height: 0.5.sh,
+                    player: controller.player,
+                    color: Colors.transparent,
+                    // panelBuilder: fijkPanel2Builder(snapShot: true),
+                    fsFit: FijkFit.ar16_9,
+                  ),
+                  // 操控杆区域
+                  Joystick(
+                    onChange: (offset) {
+                      var _joystickAngle = math.atan2(offset.dy, offset.dx);
 
-class _ContentView extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return GetBuilder<MainController>(
-        id: AppIds.main_content_view,
-        builder: (controller) {
-          return Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-            Text(
-              controller.state,
-              style: TextStyle(fontSize: 24),
-            ),
-            SizedBox(height: 20),
-            Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    _buildTextButton(
-                      "W",
-                      onTapDown: () {
-                        controller.goForward();
-                      },
-                      onTapUp: () {
-                        controller.stop();
-                      },
-                    ),
-                  ],
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    _buildTextButton(
-                      "A",
-                      onTapDown: () {
-                        controller.toLeft();
-                      },
-                      onTapUp: () {
-                        controller.stop();
-                      },
-                    ),
-                    SizedBox(width: 100),
-                    _buildTextButton(
-                      "D",
-                      onTapDown: () {
-                        controller.toRight();
-                      },
-                      onTapUp: () {
-                        controller.stop();
-                      },
-                    ),
-                  ],
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    _buildTextButton(
-                      "S",
-                      onTapDown: () {
-                        controller.goBack();
-                      },
-                      onTapUp: () {
-                        controller.stop();
-                      },
-                    ),
-                  ],
-                ),
-              ],
-            )
-          ]);
-        });
-  }
-}
+                      // 计算摇杆的位移
+                      final double dx = offset.dx / Joystick.radius;
+                      final double dy = offset.dy / Joystick.radius;
+                      var _joystickDistance = math.sqrt(dx * dx + dy * dy);
 
-Widget _buildTextButton(String text, {VoidCallback? onTapDown, VoidCallback? onTapUp}) {
-  return Material(
-    color: Colors.transparent,
-    child: InkResponse(
-      onTapDown: (_) {
-        if (onTapDown != null) onTapDown();
-      },
-      onTapUp: (_) {
-        if (onTapUp != null) onTapUp();
-      },
-      child: Padding(
-        padding: EdgeInsets.all(10),
-        child: Text(
-          text,
-          style: TextStyle(fontSize: 50),
-        ),
-      ),
-      highlightShape: BoxShape.rectangle,
-      highlightColor: Colors.red.withOpacity(0.5),
-      radius: 10,
-    ),
-  );
+                      UnicLog.i("_joystickAngle:${_joystickAngle * 180 / pi}, _joystickDistance:$_joystickDistance");
+                    },
+                  ),
+                ],
+              );
+            }));
+    // body: Container(
+    //   child: _ContentView(),
+    // ));
+  }
 }

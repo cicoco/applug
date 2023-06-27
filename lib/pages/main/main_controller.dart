@@ -157,7 +157,6 @@ class MainController extends GetxController {
 
     // 发送指令停止ffmpeg
     websocket.send(json.encode(assemblePlayState(ipAddress, false)));
-    UnicLog.i("发送停止命令");
   }
 
   // 在 onInit 一帧后被调用，适合做一些导航进入的事件，
@@ -170,39 +169,34 @@ class MainController extends GetxController {
     });
   }
 
-  void stop() {
-    websocket.send(json.encode(assembleDirection('n')));
-  }
-
-  void goForward() {
-    websocket.send(json.encode(assembleDirection('w')));
-  }
-
-  void goBack() {
-    websocket.send(json.encode(assembleDirection('s')));
-  }
-
-  void toLeft() {
-    websocket.send(json.encode(assembleDirection('a')));
-  }
-
-  void toRight() {
-    websocket.send(json.encode(assembleDirection('d')));
-  }
-
-  Map<String, dynamic> assembleDirection(String direction) {
-    return {
-      'type': 10000001,
-      'content': {
-        'productKey': productKey,
-        'deviceCode': deviceCode,
-        'command': {
-          'identifier': 'control',
-          'inputs': {'cmd': direction}
-        }
-      }
-    };
-  }
+  // void goForward() {
+  //   websocket.send(json.encode(assembleDirection('w')));
+  // }
+  //
+  // void goBack() {
+  //   websocket.send(json.encode(assembleDirection('s')));
+  // }
+  //
+  // void toLeft() {
+  //   websocket.send(json.encode(assembleDirection('a')));
+  // }
+  //
+  // void toRight() {
+  //   websocket.send(json.encode(assembleDirection('d')));
+  // }
+  // Map<String, dynamic> assembleDirection(String direction) {
+  //   return {
+  //     'type': 10000001,
+  //     'content': {
+  //       'productKey': productKey,
+  //       'deviceCode': deviceCode,
+  //       'command': {
+  //         'identifier': 'control',
+  //         'inputs': {'cmd': direction}
+  //       }
+  //     }
+  //   };
+  // }
 
   Map<String, dynamic> assemblePlayState(String ip, bool start) {
     if (start) {
@@ -212,7 +206,7 @@ class MainController extends GetxController {
           'productKey': productKey,
           'deviceCode': deviceCode,
           'command': {
-            'identifier': 'startStream',
+            'identifier': 'start',
             'inputs': {'ip': ip}
           }
         }
@@ -224,7 +218,7 @@ class MainController extends GetxController {
           'productKey': productKey,
           'deviceCode': deviceCode,
           'command': {
-            'identifier': 'stopStream',
+            'identifier': 'stop',
             'inputs': {'ip': ip}
           }
         }

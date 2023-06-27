@@ -9,6 +9,7 @@ import 'package:applug/common/values/ids.dart';
 import 'package:applug/utils/unic_log.dart';
 import 'package:fijkplayer_new/fijkplayer_new.dart';
 import 'package:get/get.dart';
+import 'package:r_get_ip/r_get_ip.dart';
 
 import 'my_client.dart';
 
@@ -25,6 +26,8 @@ class MainController extends GetxController {
 
   String state = "初始化中";
 
+  String ipAddress = "获取中";
+
   String playState = "空闲";
 
   bool switchState = false;
@@ -39,6 +42,7 @@ class MainController extends GetxController {
   @override
   void onInit() {
     super.onInit();
+    getIPAddress();
 
     // ffplay -fflags nobuffer -flags low_delay -framedrop udp://192.168.2.116:5000
     player.setOption(FijkOption.playerCategory, "fflags", "nobuffer");
@@ -85,6 +89,16 @@ class MainController extends GetxController {
     websocket.connect(URL);
   }
 
+  void getIPAddress() async {
+    // 外网IP
+    // String? ip = await RGetIp.externalIP;
+    // 内网IP
+    String? ip = await RGetIp.internalIP;
+    ipAddress = ip ?? "获取失败";
+    UnicLog.i("ipAddress:$ipAddress");
+    update([AppIds.main_content_view]);
+  }
+
   void switchButton(bool val) {
     switchState = val;
     if (switchState) {
@@ -111,31 +125,22 @@ class MainController extends GetxController {
 
     if (value.state == FijkState.asyncPreparing) {
       playState = "等待数据";
-    } else if (value.state == FijkState.error) {
-      playState = "出现错误";
-    } else if (value.state == FijkState.idle) {
-      playState = "空闲";
-    } else if (value.state == FijkState.started) {
-      playState = "播放中";
+      // 发送指令：要求开始ffmpeg
+      websocket.send(json.encode(assemblePlayState(ipAddress, true)));
+
+      UnicLog.i("发送启动命令");
+    } else {
+      if (value.state == FijkState.error) {
+        playState = "出现错误";
+      } else if (value.state == FijkState.idle) {
+        playState = "空闲";
+      } else if (value.state == FijkState.started) {
+        playState = "播放中";
+      }
     }
 
     UnicLog.i("播放器回调 $value");
     update([AppIds.main_content_view]);
-
-    // double width = _vWidth;
-    // double height = _vHeight;
-    //
-    // if (value.prepared) {
-    //   width = value.size.width;
-    //   height = value.size.height;
-    // }
-    //
-    // if (width != _vWidth || height != _vHeight) {
-    //   setState(() {
-    //     _vWidth = width;
-    //     _vHeight = height;
-    //   });
-    // }
   }
 
   void startPlay() async {
@@ -149,6 +154,10 @@ class MainController extends GetxController {
   void stopPlay() async {
     await player.stop();
     await player.reset();
+
+    // 发送指令停止ffmpeg
+    websocket.send(json.encode(assemblePlayState(ipAddress, false)));
+    UnicLog.i("发送停止命令");
   }
 
   // 在 onInit 一帧后被调用，适合做一些导航进入的事件，
@@ -193,6 +202,34 @@ class MainController extends GetxController {
         }
       }
     };
+  }
+
+  Map<String, dynamic> assemblePlayState(String ip, bool start) {
+    if (start) {
+      return {
+        'type': 10000001,
+        'content': {
+          'productKey': productKey,
+          'deviceCode': deviceCode,
+          'command': {
+            'identifier': 'startStream',
+            'inputs': {'ip': ip}
+          }
+        }
+      };
+    } else {
+      return {
+        'type': 10000001,
+        'content': {
+          'productKey': productKey,
+          'deviceCode': deviceCode,
+          'command': {
+            'identifier': 'stopStream',
+            'inputs': {'ip': ip}
+          }
+        }
+      };
+    }
   }
 
   // 在 onDelete 方法前调用、用于销毁 controller 使用的资源，

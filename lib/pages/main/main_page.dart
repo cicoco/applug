@@ -39,7 +39,10 @@ class MainPage extends StatelessWidget {
                     fsFit: FijkFit.ar16_9,
                   ),
                   // 操控杆区域
-                  SizedBox(width: 1.sw, height: 10.h),
+                  Text(
+                    "本机IP: ${controller.ipAddress}",
+                    style: TextStyle(fontSize: 18.sp),
+                  ),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     // crossAxisAlignment: CrossAxisAlignment.center,
@@ -50,6 +53,7 @@ class MainPage extends StatelessWidget {
                       ),
                       SizedBox(width: 10.w, height: 1.h),
                       FlutterSwitch(
+                          height: 26.h,
                           showOnOff: true,
                           value: controller.switchState,
                           onToggle: (val) {
@@ -66,13 +70,12 @@ class MainPage extends StatelessWidget {
                   Joystick(
                     onChange: (offset) {
                       var _joystickAngle = math.atan2(offset.dy, offset.dx);
-
                       // 计算摇杆的位移
                       final double dx = offset.dx / Joystick.radius;
                       final double dy = offset.dy / Joystick.radius;
                       var _joystickDistance = math.sqrt(dx * dx + dy * dy);
-
                       UnicLog.i("_joystickAngle:${_joystickAngle * 180 / pi}, _joystickDistance:$_joystickDistance");
+                      // TODO
                     },
                   ),
                 ],

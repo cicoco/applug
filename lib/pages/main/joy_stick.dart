@@ -7,7 +7,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
 class Joystick extends StatefulWidget {
-  static const double radius = 120; // 定义摇杆的半径
+  static const double radius = 110; // 定义摇杆的半径
   const Joystick({
     Key? key,
     this.size = const Size(radius * 2, radius * 2),
@@ -117,7 +117,7 @@ class _JoystickPainter extends CustomPainter {
       ..color = color
       ..style = PaintingStyle.fill;
 
-    canvas.drawCircle(Offset(centerX, centerY), radius, Paint()..color = Colors.red);
+    canvas.drawCircle(Offset(centerX, centerY), radius, Paint()..color = this.color.withAlpha(90));
     canvas.drawCircle(Offset(knobCenterX, knobCenterY), knobRadius, paint);
   }
 

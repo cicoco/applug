@@ -25,6 +25,9 @@ class MainController extends GetxController {
 
   String state = "初始化中";
 
+  String playState = "空闲";
+
+  bool switchState = false;
   final FijkPlayer player = FijkPlayer();
 
   // onStart 组件在内存分配的时间点就会被调用，这是一个final方法，并使用了内部的callable类型，以避免被子类覆盖。
@@ -63,7 +66,7 @@ class MainController extends GetxController {
 
     player.setOption(FijkOption.codecCategory, "skip_loop_filter", 48);
 
-    startPlay();
+    player.addListener(_fijkValueListener);
 
     websocket.onMessage.listen((message) {
       // 处理 WebSocket 消息
@@ -82,12 +85,70 @@ class MainController extends GetxController {
     websocket.connect(URL);
   }
 
+  void switchButton(bool val) {
+    switchState = val;
+    if (switchState) {
+      startPlay();
+    } else {
+      stopPlay();
+    }
+    update([AppIds.main_content_view]);
+  }
+
+  /**
+   *  prepared 表示 prepareAsync 后台任务是否执行完成，完成后播放器状态也对应转变为 prepared
+      completed 表示播放器是否播放完成，
+      audioRenderStart 表示音频是否开始播放，播放第一帧音频是从 false 变为 true，reset() 之后变为 false
+      videoRenderStart 表示视频是否开始播放，播放第一帧视频是从 false 变为 true，reset() 之后变为 false
+      state 播放器当前状态
+      size 视频分辨率大小
+      duration 媒体内容长度，对于直播内容，duration 值无效
+      fullScreen 播放器是否应该全屏显示，这个属性随着接口 enterFullScreen \ exitFullScreen 的调用而发生变化。
+      exception 播放器进入 error 状态的具体原因。 在错误和异常一节中查看更多内容。
+   */
+  void _fijkValueListener() {
+    FijkValue value = player.value;
+
+    if (value.state == FijkState.asyncPreparing) {
+      playState = "等待数据";
+    } else if (value.state == FijkState.error) {
+      playState = "出现错误";
+    } else if (value.state == FijkState.idle) {
+      playState = "空闲";
+    } else if (value.state == FijkState.started) {
+      playState = "播放中";
+    }
+
+    UnicLog.i("播放器回调 $value");
+    update([AppIds.main_content_view]);
+
+    // double width = _vWidth;
+    // double height = _vHeight;
+    //
+    // if (value.prepared) {
+    //   width = value.size.width;
+    //   height = value.size.height;
+    // }
+    //
+    // if (width != _vWidth || height != _vHeight) {
+    //   setState(() {
+    //     _vWidth = width;
+    //     _vHeight = height;
+    //   });
+    // }
+  }
+
   void startPlay() async {
     await player.setOption(FijkOption.hostCategory, "request-screen-on", 1);
     await player.setOption(FijkOption.hostCategory, "request-audio-focus", 1);
     await player.setDataSource(PREVIEW_URL, autoPlay: true).catchError((e) {
       UnicLog.w("setDataSource error: $e");
     });
+  }
+
+  void stopPlay() async {
+    await player.stop();
+    await player.reset();
   }
 
   // 在 onInit 一帧后被调用，适合做一些导航进入的事件，
@@ -138,6 +199,8 @@ class MainController extends GetxController {
   // 例如关闭事件监听，关闭流对象，或者销毁可能造成内存泄露的对象
   @override
   void onClose() {
+    stopPlay();
+    player.removeListener(_fijkValueListener);
     player.release();
     _heartbeatTimer?.cancel();
     websocket.disconnect();

@@ -30,6 +30,9 @@ class MainController extends GetxController {
 
   String playState = "空闲";
 
+  double lastAngle = 0;
+  double lastDistance = 0;
+
   bool switchState = false;
   final FijkPlayer player = FijkPlayer();
 

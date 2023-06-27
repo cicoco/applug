@@ -74,6 +74,7 @@ class MainPage extends StatelessWidget {
                       final double dx = offset.dx / Joystick.radius;
                       final double dy = offset.dy / Joystick.radius;
                       var _joystickDistance = math.sqrt(dx * dx + dy * dy);
+
                       UnicLog.i("_joystickAngle:${_joystickAngle * 180 / pi}, _joystickDistance:$_joystickDistance");
                       // TODO
                     },

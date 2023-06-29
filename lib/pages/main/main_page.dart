@@ -52,7 +52,7 @@ class MainPage extends StatelessWidget {
                       ),
                       SizedBox(width: 10.w, height: 1.h),
                       FlutterSwitch(
-                          disabled: !controller.switchEnable,
+                          disabled: !(controller.switchEnable && controller.state == '已连接'),
                           height: 26.h,
                           showOnOff: true,
                           value: controller.switchState,

@@ -236,12 +236,12 @@ class MainController extends GetxController {
   void startPlay() async {
     await player.setOption(FijkOption.hostCategory, "request-screen-on", 1);
     await player.setOption(FijkOption.hostCategory, "request-audio-focus", 1);
-    await player.setDataSource(PREVIEW_URL, autoPlay: false).catchError((e) {
+    await player.setDataSource(PREVIEW_URL, autoPlay: true).catchError((e) {
       UnicLog.w("setDataSource error: $e");
     });
 
-    await player.prepareAsync();
-    await player.start();
+    // await player.prepareAsync();
+    // await player.start();
   }
 
   void stopPlay() async {

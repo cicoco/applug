@@ -6,9 +6,12 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:applug/common/values/ids.dart';
+import 'package:applug/model/command_ack_msg.dart';
+import 'package:applug/model/command_send_msg.dart';
 import 'package:applug/utils/unic_log.dart';
 import 'package:fijkplayer_new/fijkplayer_new.dart';
 import 'package:get/get.dart';
+import 'package:memory_cache/memory_cache.dart';
 import 'package:r_get_ip/r_get_ip.dart';
 
 import 'my_client.dart';
@@ -16,6 +19,8 @@ import 'my_client.dart';
 class MainController extends GetxController {
   final URL = "ws://jingwei-test.wesine.com.cn:8075/api/ws?AppUserToken=Plain%20372@guxiang";
   final PREVIEW_URL = "udp://127.0.0.1:5000";
+
+  final String PING = " ";
 
   final productKey = '49KaPBUogOO7';
   final deviceCode = 'WSCPCG100000001';
@@ -28,12 +33,20 @@ class MainController extends GetxController {
 
   String ipAddress = "获取中";
 
-  String playState = "空闲";
+  // String playState = "空闲";
 
   double lastAngle = 0;
   double lastDistance = 0;
 
   bool switchState = false;
+  FijkState playState = FijkState.idle;
+  bool _hasPrepared = true;
+
+  bool switchEnable = true;
+
+  // 0空闲，1启动
+  int piState = 0;
+
   final FijkPlayer player = FijkPlayer();
 
   // onStart 组件在内存分配的时间点就会被调用，这是一个final方法，并使用了内部的callable类型，以避免被子类覆盖。
@@ -77,7 +90,53 @@ class MainController extends GetxController {
 
     websocket.onMessage.listen((message) {
       // 处理 WebSocket 消息
-      UnicLog.i('Received message: $message');
+      if (PING == message) {
+        return;
+      }
+      UnicLog.i("Receive Msg:${message}");
+      // I/flutter (13899): │ 💡 Receive Msg:{"type":"commandSend","data":{"request":{"topic":"ws/WSCPCG100000001/v1/49KaPBUogOO7/command/start","payload":"{\"mid\":\"c707a34db27affaa4ed66094cbbbe9c6\",\"sn\":\"$SYS\",\"ts\":1687959407244,\"identifier\":\"start\",\"data\":{\"ip\":\"192.168.2.5\"}}"},"async":true,"requestId":"c707a34db27affaa4ed66094cbbbe9c6"}}
+      // I/flutter (13899): │ 💡 Receive Msg:{"type":"commandAck","data":"{\"mid\": \"60ae17af-a222-48d0-8763-ef56359541cb\", \"rid\": \"c707a34db27affaa4ed66094cbbbe9c6\", \"ts\": 1687959407343, \"sn\": \"WSCPCG100000001\", \"data\": {\"code\": 0}}"}
+
+      Map<String, dynamic> msg = jsonDecode(message);
+      String type = msg['type'];
+
+      if (type == 'commandSend') {
+        CommandSendMsg sendMsg = CommandSendMsg.fromJson(msg);
+        dynamic request = sendMsg.data.request;
+        String topic = request['topic'];
+
+        String? cacheValue;
+        if (topic.endsWith("start")) {
+          cacheValue = "start";
+        } else if (topic.endsWith("stop")) {
+          cacheValue = "stop";
+        }
+        if (null != cacheValue) {
+          MemoryCache.instance.create(
+            sendMsg.data.requestId,
+            cacheValue,
+            expiry: const Duration(seconds: 15),
+          );
+        }
+      } else if (type == 'commandAck') {
+        CommandAckMsg ackMsg = CommandAckMsg.fromJson(msg);
+
+        num code = ackMsg.data.data['code'];
+
+        String? _ackVal = MemoryCache.instance.read(ackMsg.data.rid);
+        if (null != _ackVal && (_ackVal == 'start' || _ackVal == 'stop')) {
+          switchEnable = true;
+
+          if (code == 0) {
+            if (_ackVal == 'start') {
+              piState = 1;
+            } else if (_ackVal == 'stop') {
+              piState = 0;
+            }
+            update([AppIds.main_content_view]);
+          }
+        }
+      }
     });
 
     websocket.onConnect.listen((_) {
@@ -125,33 +184,64 @@ class MainController extends GetxController {
    */
   void _fijkValueListener() {
     FijkValue value = player.value;
+    if (playState != value.state) {
+      playState = value.state;
 
-    if (value.state == FijkState.asyncPreparing) {
-      playState = "等待数据";
-      // 发送指令：要求开始ffmpeg
-      websocket.send(json.encode(assemblePlayState(ipAddress, true)));
-
-      UnicLog.i("发送启动命令");
-    } else {
-      if (value.state == FijkState.error) {
-        playState = "出现错误";
-      } else if (value.state == FijkState.idle) {
-        playState = "空闲";
-      } else if (value.state == FijkState.started) {
-        playState = "播放中";
+      if (_hasPrepared && playState == FijkState.asyncPreparing) {
+        websocket.send(json.encode(assemblePlayState(ipAddress, true)));
+        _hasPrepared = false;
+        switchEnable = false;
       }
-    }
+      if (!_hasPrepared && playState == FijkState.idle) {
+        _hasPrepared = true;
+      }
 
-    UnicLog.i("播放器回调 $value");
-    update([AppIds.main_content_view]);
+      update([AppIds.main_content_view]);
+    }
+  }
+
+  String getPlayState() {
+    switch (playState) {
+      case FijkState.idle:
+        if (piState == 0) {
+          return "空闲";
+        } else if (piState == 1) {
+          return "等待空闲";
+        } else {
+          return "空闲未知";
+        }
+      case FijkState.initialized:
+        return "初始化中";
+      case FijkState.asyncPreparing:
+        return "流等待";
+      case FijkState.prepared:
+        return "准备完成";
+      case FijkState.started:
+        return "播放中";
+      case FijkState.paused:
+        return "暂停";
+      case FijkState.completed:
+        return "已完成";
+      case FijkState.stopped:
+        return "已停止";
+      case FijkState.error:
+        return "错误，请重启";
+      case FijkState.end:
+        return "已结束";
+      default:
+        return "未知";
+    }
   }
 
   void startPlay() async {
     await player.setOption(FijkOption.hostCategory, "request-screen-on", 1);
     await player.setOption(FijkOption.hostCategory, "request-audio-focus", 1);
-    await player.setDataSource(PREVIEW_URL, autoPlay: true).catchError((e) {
+    await player.setDataSource(PREVIEW_URL, autoPlay: false).catchError((e) {
       UnicLog.w("setDataSource error: $e");
     });
+
+    await player.prepareAsync();
+    await player.start();
   }
 
   void stopPlay() async {
@@ -160,6 +250,7 @@ class MainController extends GetxController {
 
     // 发送指令停止ffmpeg
     websocket.send(json.encode(assemblePlayState(ipAddress, false)));
+    switchEnable = false;
   }
 
   // 在 onInit 一帧后被调用，适合做一些导航进入的事件，
@@ -168,38 +259,9 @@ class MainController extends GetxController {
   void onReady() {
     super.onReady();
     _heartbeatTimer = Timer.periodic(Duration(seconds: 10), (timer) {
-      websocket.send(" ");
+      websocket.send(PING);
     });
   }
-
-  // void goForward() {
-  //   websocket.send(json.encode(assembleDirection('w')));
-  // }
-  //
-  // void goBack() {
-  //   websocket.send(json.encode(assembleDirection('s')));
-  // }
-  //
-  // void toLeft() {
-  //   websocket.send(json.encode(assembleDirection('a')));
-  // }
-  //
-  // void toRight() {
-  //   websocket.send(json.encode(assembleDirection('d')));
-  // }
-  // Map<String, dynamic> assembleDirection(String direction) {
-  //   return {
-  //     'type': 10000001,
-  //     'content': {
-  //       'productKey': productKey,
-  //       'deviceCode': deviceCode,
-  //       'command': {
-  //         'identifier': 'control',
-  //         'inputs': {'cmd': direction}
-  //       }
-  //     }
-  //   };
-  // }
 
   Map<String, dynamic> assemblePlayState(String ip, bool start) {
     if (start) {
@@ -220,10 +282,7 @@ class MainController extends GetxController {
         'content': {
           'productKey': productKey,
           'deviceCode': deviceCode,
-          'command': {
-            'identifier': 'stop',
-            'inputs': {'ip': ip}
-          }
+          'command': {'identifier': 'stop'}
         }
       };
     }

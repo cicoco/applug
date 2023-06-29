@@ -11,7 +11,6 @@ import 'package:applug/utils/image_utils.dart';
 import 'package:applug/utils/unic_log.dart';
 import 'package:fijkplayer_new/fijkplayer_new.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/src/widgets/framework.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_switch/flutter_switch.dart';
 import 'package:get/get.dart';
@@ -53,6 +52,7 @@ class MainPage extends StatelessWidget {
                       ),
                       SizedBox(width: 10.w, height: 1.h),
                       FlutterSwitch(
+                          disabled: !controller.switchEnable,
                           height: 26.h,
                           showOnOff: true,
                           value: controller.switchState,
@@ -61,7 +61,7 @@ class MainPage extends StatelessWidget {
                           }),
                       SizedBox(width: 10.w, height: 1.h),
                       Text(
-                        controller.playState,
+                        controller.getPlayState(),
                         style: TextStyle(fontSize: 18.sp),
                       ),
                     ],

@@ -22,7 +22,6 @@ class JoyButton extends StatefulWidget {
 }
 
 class _JoyButtonState extends State<JoyButton> {
-  String _direction = '';
   String _pressedButton = '';
 
   @override
@@ -92,43 +91,9 @@ class _JoyButtonState extends State<JoyButton> {
     );
   }
 
-  void _updateDirection(String direction) {
-    setState(() {
-      _direction = direction;
-    });
-  }
-
-  String _getDirection(Offset localPosition) {
-    final dx = localPosition.dx - widget.size / 2;
-    final dy = localPosition.dy - widget.size / 2;
-
-    if (dx.abs() > dy.abs()) {
-      return dx > 0 ? 'D' : 'A';
-    } else {
-      return dy > 0 ? 'S' : 'W';
-    }
-  }
-
   void _updatePressedButton(String button) {
     setState(() {
       _pressedButton = button;
     });
-  }
-
-  String _getPressedButton(Offset localPosition) {
-    final dx = localPosition.dx - widget.size / 2;
-    final dy = localPosition.dy - widget.size / 2;
-
-    if (dx.abs() < widget.buttonRadius && dy < 0) {
-      return 'W';
-    } else if (dx.abs() < widget.buttonRadius && dy > 0) {
-      return 'S';
-    } else if (dx > 0 && dy.abs() < widget.buttonRadius) {
-      return 'D';
-    } else if (dx < 0 && dy.abs() < widget.buttonRadius) {
-      return 'A';
-    } else {
-      return '';
-    }
   }
 }

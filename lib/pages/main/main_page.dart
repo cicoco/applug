@@ -91,10 +91,14 @@ class MainPage extends StatelessWidget {
                           size: 160.r,
                           buttonRadius: 30.r,
                           onButtonTapDown: (direction) {
-                            UnicLog.i("方向按下：" + direction);
+                            if (direction == 'W') {
+                              controller.goForward('w');
+                            } else if (direction == 'S') {
+                              controller.goBackward('s');
+                            }
                           },
                           onButtonTapUp: (direction) {
-                            UnicLog.i("方向抬起：" + direction);
+                            controller.brake();
                           })
                     ],
                   )

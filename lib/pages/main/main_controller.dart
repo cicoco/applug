@@ -253,6 +253,45 @@ class MainController extends GetxController {
     switchEnable = false;
   }
 
+  void goForward(String direction) {
+    websocket.send(json.encode({
+      'type': 10000001,
+      'content': {
+        'productKey': productKey,
+        'deviceCode': deviceCode,
+        'command': {
+          'identifier': direction,
+        }
+      }
+    }));
+  }
+
+  void goBackward(String direction) {
+    websocket.send(json.encode({
+      'type': 10000001,
+      'content': {
+        'productKey': productKey,
+        'deviceCode': deviceCode,
+        'command': {
+          'identifier': direction,
+        }
+      }
+    }));
+  }
+
+  void brake() {
+    websocket.send(json.encode({
+      'type': 10000001,
+      'content': {
+        'productKey': productKey,
+        'deviceCode': deviceCode,
+        'command': {
+          'identifier': 'n',
+        }
+      }
+    }));
+  }
+
   // 在 onInit 一帧后被调用，适合做一些导航进入的事件，
   // 例如对话框提示、SnackBar 或异步网络请求
   @override

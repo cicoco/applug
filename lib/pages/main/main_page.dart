@@ -6,6 +6,7 @@ import 'dart:math' as math;
 import 'dart:math';
 
 import 'package:applug/common/values/ids.dart';
+import 'package:applug/pages/main/joy_button.dart';
 import 'package:applug/pages/main/joy_stick.dart';
 import 'package:applug/utils/image_utils.dart';
 import 'package:applug/utils/unic_log.dart';
@@ -66,19 +67,37 @@ class MainPage extends StatelessWidget {
                       ),
                     ],
                   ),
-                  SizedBox(width: 1.sw, height: 10.h),
-                  Joystick(
-                    onChange: (offset) {
-                      var _joystickAngle = math.atan2(offset.dy, offset.dx);
-                      // 计算摇杆的位移
-                      final double dx = offset.dx / Joystick.radius;
-                      final double dy = offset.dy / Joystick.radius;
-                      var _joystickDistance = math.sqrt(dx * dx + dy * dy);
+                  SizedBox(width: 1.sw, height: 40.h),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      // 左右
+                      Joystick(
+                        onChange: (offset) {
+                          var _joystickAngle = math.atan2(offset.dy, offset.dx);
+                          // 计算摇杆的位移
+                          final double dx = offset.dx / Joystick.radius;
+                          final double dy = offset.dy / Joystick.radius;
+                          var _joystickDistance = math.sqrt(dx * dx + dy * dy);
 
-                      UnicLog.i("_joystickAngle:${_joystickAngle * 180 / pi}, _joystickDistance:$_joystickDistance");
-                      // TODO
-                    },
-                  ),
+                          UnicLog.i(
+                              "_joystickAngle:${_joystickAngle * 180 / pi}, _joystickDistance:$_joystickDistance");
+                          // TODO
+                        },
+                      ),
+
+                      //  前后
+                      JoyButton(
+                          size: 160.r,
+                          buttonRadius: 30.r,
+                          onButtonTapDown: (direction) {
+                            UnicLog.i("方向按下：" + direction);
+                          },
+                          onButtonTapUp: (direction) {
+                            UnicLog.i("方向抬起：" + direction);
+                          })
+                    ],
+                  )
                 ],
               );
             }));

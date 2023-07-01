@@ -253,27 +253,68 @@ class MainController extends GetxController {
     switchEnable = false;
   }
 
-  void goForward(String direction) {
+  void goForward(num max) {
     websocket.send(json.encode({
       'type': 10000001,
       'content': {
         'productKey': productKey,
         'deviceCode': deviceCode,
         'command': {
-          'identifier': direction,
+          'identifier': "w",
+          'inputs': {'a': max}
         }
       }
     }));
   }
 
-  void goBackward(String direction) {
+  void toLeft() {
     websocket.send(json.encode({
       'type': 10000001,
       'content': {
         'productKey': productKey,
         'deviceCode': deviceCode,
         'command': {
-          'identifier': direction,
+          'identifier': "a",
+        }
+      }
+    }));
+  }
+
+  void toRight() {
+    websocket.send(json.encode({
+      'type': 10000001,
+      'content': {
+        'productKey': productKey,
+        'deviceCode': deviceCode,
+        'command': {
+          'identifier': "d",
+        }
+      }
+    }));
+  }
+
+  void turnOver() {
+    websocket.send(json.encode({
+      'type': 10000001,
+      'content': {
+        'productKey': productKey,
+        'deviceCode': deviceCode,
+        'command': {
+          'identifier': "i",
+        }
+      }
+    }));
+  }
+
+  void goBackward(num max) {
+    websocket.send(json.encode({
+      'type': 10000001,
+      'content': {
+        'productKey': productKey,
+        'deviceCode': deviceCode,
+        'command': {
+          'identifier': "s",
+          'inputs': {'a': max}
         }
       }
     }));

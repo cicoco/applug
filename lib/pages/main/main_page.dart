@@ -3,13 +3,11 @@
 // @date: 2023-06-02 14:01:30
 
 import 'dart:math' as math;
-import 'dart:math';
 
 import 'package:applug/common/values/ids.dart';
 import 'package:applug/pages/main/joy_button.dart';
 import 'package:applug/pages/main/joy_stick.dart';
 import 'package:applug/utils/image_utils.dart';
-import 'package:applug/utils/unic_log.dart';
 import 'package:fijkplayer_new/fijkplayer_new.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -19,6 +17,8 @@ import 'package:get/get.dart';
 import 'main_controller.dart';
 
 class MainPage extends StatelessWidget {
+  int _lastDistance = 0;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -80,9 +80,22 @@ class MainPage extends StatelessWidget {
                           final double dy = offset.dy / Joystick.radius;
                           var _joystickDistance = math.sqrt(dx * dx + dy * dy);
 
-                          UnicLog.i(
-                              "_joystickAngle:${_joystickAngle * 180 / pi}, _joystickDistance:$_joystickDistance");
-                          // TODO
+                          int distance = (_joystickDistance * 8000).toInt();
+
+                          if (distance > 0) {
+                            if (_lastDistance == distance) {
+                              return;
+                            }
+                            _lastDistance = distance;
+                            if (_joystickAngle < 0) {
+                              controller.goForward(distance);
+                            } else {
+                              controller.goBackward(distance);
+                            }
+                          } else {
+                            _lastDistance = 0;
+                            controller.brake();
+                          }
                         },
                       ),
 
@@ -91,14 +104,14 @@ class MainPage extends StatelessWidget {
                           size: 160.r,
                           buttonRadius: 30.r,
                           onButtonTapDown: (direction) {
-                            if (direction == 'W') {
-                              controller.goForward('w');
-                            } else if (direction == 'S') {
-                              controller.goBackward('s');
+                            if (direction == 'A') {
+                              controller.toLeft();
+                            } else if (direction == 'D') {
+                              controller.toRight();
                             }
                           },
                           onButtonTapUp: (direction) {
-                            controller.brake();
+                            controller.turnOver();
                           })
                     ],
                   )

@@ -80,8 +80,8 @@ class MainPage extends StatelessWidget {
                           final double dy = offset.dy / Joystick.radius;
                           var _joystickDistance = math.sqrt(dx * dx + dy * dy);
 
+                          int distance = math.min((_joystickDistance * 4000).toInt(), 100);
                           // int distance = math.min((_joystickDistance * 8000).toInt(), 100);
-                          int distance = math.min((_joystickDistance * 9000).toInt(), 100);
 
                           if (distance > 0) {
                             if (_lastDistance == distance) {
